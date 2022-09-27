@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Dict
 
 import torch
+from torch.utils.data.dataloader import DataLoader
 
 from dataset import SeqClsDataset
 from model import SeqClassifier
@@ -21,25 +22,55 @@ def main(args):
     data = json.loads(args.test_file.read_text())
     dataset = SeqClsDataset(data, vocab, intent2idx, args.max_len)
     # TODO: crecate DataLoader for test dataset
+    test_dataloader = DataLoader(
+        dataset = dataset,
+        batch_size = args.batch_size,
+        collate_fn = dataset.collate_fn,
+    )
 
     embeddings = torch.load(args.cache_dir / "embeddings.pt")
 
+    num_class = dataset.num_classes
     model = SeqClassifier(
-        embeddings,
-        args.hidden_size,
-        args.num_layers,
-        args.dropout,
-        args.bidirectional,
-        dataset.num_classes,
+        #model = args.model,
+        hidden_size = args.hidden_size,
+        embeddings = embeddings,
+        num_layers = args.num_layers,
+        dropout = args.dropout,
+        bidirectional = args.bidirectional,
+        num_class = num_class
     )
+
+    device = args.device
+    model = model.to(device)
     model.eval()
 
     ckpt = torch.load(args.ckpt_path)
     # load weights into model
+    model.load_state_dict( ckpt )
 
     # TODO: predict dataset
+    result = []
+    print('Start to test...')
+    for i, datas in enumerate( test_dataloader  ):
+        inputs = datas['text']
+        inputs = torch.LongTensor( inputs  ).to( device  )
+
+        # forward
+        outputs = model( inputs  )
+
+        # calculate accuracy
+        _, predictions = torch.max( outputs, dim = 1  )
+        predictions = [ dataset.idx2label( int( prediction ) ) for prediction in predictions ]
+        ids = datas['id']
+        result += list( zip( ids, predictions ) )
 
     # TODO: write prediction to file (args.pred_file)
+    print( f'Writing predicttions to {args.pred_file}...' )
+    with open( args.pred_file, 'w' ) as f:
+        f.write('id,intent\n')
+        for _id, prediction in result:
+            f.write(f'{_id},{prediction}\n')
 
 
 def parse_args() -> Namespace:
@@ -48,7 +79,7 @@ def parse_args() -> Namespace:
         "--test_file",
         type=Path,
         help="Path to the test file.",
-        required=True
+        default = "./data/intent/test.json"
     )
     parser.add_argument(
         "--cache_dir",
@@ -60,7 +91,7 @@ def parse_args() -> Namespace:
         "--ckpt_path",
         type=Path,
         help="Path to model checkpoint.",
-        required=True
+        default = './ckpt/intent/best_model.pt'
     )
     parser.add_argument("--pred_file", type=Path, default="pred.intent.csv")
 
@@ -77,7 +108,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--batch_size", type=int, default=128)
 
     parser.add_argument(
-        "--device", type=torch.device, help="cpu, cuda, cuda:0, cuda:1", default="cpu"
+        "--device", type=torch.device, help="cpu, cuda, cuda:0, cuda:1", default="cuda:0"
     )
     args = parser.parse_args()
     return args

@@ -4,7 +4,6 @@ from torch.utils.data import Dataset
 
 from utils import Vocab
 
-
 class SeqClsDataset(Dataset):
     def __init__(
         self,
@@ -32,7 +31,18 @@ class SeqClsDataset(Dataset):
 
     def collate_fn(self, samples: List[Dict]) -> Dict:
         # TODO: implement collate_fn
-        raise NotImplementedError
+        sample_keys = list( samples[0].keys() )
+        output = {}
+        for key in sample_keys:
+            if key == 'text':
+                ## split each text by whitespace
+                texts = [ sample['text'].split() for sample in samples ]
+                output[key] = self.vocab.encode_batch( texts )
+            else:
+                output[key] = [ sample[key] for sample in samples ]
+
+        return output
+        #raise NotImplementedError
 
     def label2idx(self, label: str):
         return self.label_mapping[label]

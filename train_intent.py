@@ -5,10 +5,14 @@ from pathlib import Path
 from typing import Dict
 
 import torch
+from torch.utils.data.dataloader import DataLoader
+import torch.nn as nn
 from tqdm import trange
+import torch.optim as optim
 
 from dataset import SeqClsDataset
 from utils import Vocab
+from model import SeqClassifier
 
 TRAIN = "train"
 DEV = "eval"
@@ -29,20 +33,114 @@ def main(args):
         for split, split_data in data.items()
     }
     # TODO: crecate DataLoader for train / dev datasets
+    train_dataloader = DataLoader(
+        dataset = datasets[TRAIN],
+        batch_size = args.batch_size,
+        collate_fn = datasets[TRAIN].collate_fn,
+        shuffle = True
+    )
+
+    dev_dataloader = DataLoader(
+        dataset = datasets[DEV],
+        batch_size = args.batch_size,
+        collate_fn = datasets[DEV].collate_fn,
+        shuffle = True
+    )
 
     embeddings = torch.load(args.cache_dir / "embeddings.pt")
     # TODO: init model and move model to target device(cpu / gpu)
-    model = None
+    device = args.device
+    num_class = len( intent2idx )
+    model = SeqClassifier(
+        #model = args.model,
+        hidden_size = args.hidden_size,
+        embeddings = embeddings,
+        num_layers = args.num_layers,
+        dropout = args.dropout,
+        bidirectional = args.bidirectional,
+        num_class = num_class
+    )
+
+    model = model.to( device )
+
+    criterion = nn.CrossEntropyLoss()
 
     # TODO: init optimizer
-    optimizer = None
+    optimizer = optim.Adam(
+        model.parameters(),
+        lr = args.lr,
+        weight_decay = 1e-5
+    )
+
 
     epoch_pbar = trange(args.num_epoch, desc="Epoch")
+    best_acc = 0.0
     for epoch in epoch_pbar:
         # TODO: Training loop - iterate over train dataloader and update model weights
-        # TODO: Evaluation loop - calculate accuracy and save model weights
-        pass
+        model.train()
+        train_acc, train_losses, dev_acc, dev_losses = 0, 0, 0, 0
+        for i, datas in enumerate( train_dataloader ):
+            # get inputs&labels from train dataloader
+            inputs = datas['text']
+            labels = datas['intent']
+            labels = [ intent2idx[label] for label in labels ]
 
+            inputs = torch.LongTensor( inputs ).to( device )
+            labels = torch.LongTensor( labels ).to( device )
+
+            # forward
+            outputs = model( inputs )
+
+            # calculate loss
+            loss = criterion( outputs, labels )
+
+            # backward
+            optimizer.zero_grad()
+            loss.backward()
+            optimizer.step()
+
+            # calculate accuracy
+            _, predictions = torch.max( outputs, dim = 1 )
+            train_acc += ( predictions.cpu() == labels.cpu() ).sum().item()
+            train_losses += loss.item()
+
+        # TODO: Evaluation loop - calculate accuracy and save model weights
+        model.eval()
+        with torch.no_grad():
+            for i, datas in enumerate( dev_dataloader ):
+                inputs = datas['text']
+                labels = datas['intent']
+                labels = [ intent2idx[label] for label in labels ]
+
+                inputs = torch.LongTensor( inputs ).to( device )
+                labels = torch.LongTensor( labels ).to( device )
+
+                # forward
+                outputs = model( inputs )
+
+                # calculate loss
+                loss = criterion( outputs, labels )
+
+
+                # calculate accuracy
+                _, predictions = torch.max( outputs, dim = 1 )
+                dev_acc += ( predictions.cpu() == labels.cpu() ).sum().item()
+                dev_losses += loss.item()
+
+            print( '\nEpoch[{:03d}/{:03d}] Train Acc: {:3.6f} Loss: {:3.6f} | Dev Acc: {:3.6f} loss: {:3.6f}'.format(
+                epoch,
+                args.num_epoch,
+                train_acc / len( datasets[TRAIN] ),
+                train_losses / len( train_dataloader ),
+                dev_acc / len( datasets[DEV] ),
+                dev_losses / len( dev_dataloader ) ) )
+
+            if dev_acc > best_acc:
+                best_acc = dev_acc
+                torch.save( model.state_dict(), args.ckpt_dir / "best_model.pt" )
+                print( 'saving model with acc {:.3f}'.format( best_acc / len( datasets[DEV] ) ) )
+
+        print( 'Overall best model: acc {:.3f}'.format( best_acc / len( datasets[DEV] ) ) )
     # TODO: Inference on test set
 
 
@@ -84,7 +182,7 @@ def parse_args() -> Namespace:
 
     # training
     parser.add_argument(
-        "--device", type=torch.device, help="cpu, cuda, cuda:0, cuda:1", default="cpu"
+        "--device", type=torch.device, help="cpu, cuda, cuda:0, cuda:1", default="cuda:0"
     )
     parser.add_argument("--num_epoch", type=int, default=100)
 
