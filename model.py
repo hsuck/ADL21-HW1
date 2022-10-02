@@ -51,20 +51,53 @@ class SeqClassifier(torch.nn.Module):
 
     def forward(self, batch) -> Dict[str, torch.Tensor]:
         # TODO: implement model forward
-        #h0 = torch.zeros( self.num_layers * 2, batch.size(0), self.hidden_size ).to( device )
-        #c0 = torch.zeros( self.num_layers * 2, batch.size(0), self.hidden_size ).to( device )
         x = self.embed( batch )
-        #out, hidden = self.rnn( x, ( h0, c0 ) )
-        out, hidden = self.rnn( x, None )
+        x, hidden = self.rnn( x, None )
         if self.bidirectional:
-            out = self.classifier( torch.mean( out, dim = 1 ) )
+            out = self.classifier( torch.mean( x, dim = 1 ) )
         else:
-            out = self.classifier( out[:, -1, :] )
+            out = self.classifier( x[:, -1, :] )
         return out
         #raise NotImplementedError
 
 
 class SeqTagger(SeqClassifier):
+    def __init__(
+        self,
+        embeddings: torch.tensor,
+        hidden_size: int,
+        num_layers: int,
+        dropout: float,
+        bidirectional: bool,
+        num_class: int,
+    ) -> None:
+        super().__init__(
+            hidden_size = hidden_size,
+            embeddings = embeddings,
+            num_layers = num_layers,
+            dropout = dropout,
+            bidirectional = bidirectional,
+            num_class = num_class
+        )
+
+        #self.embed = Embedding.from_pretrained(embeddings, freeze=False)
+        #self.hidden_size = hidden_size
+        #self.num_layers = num_layers
+        #self.dropout = dropout
+        #self.bidirectional = bidirectional
+        #self.num_class = num_class
+
+        self.classifier = nn.Sequential(
+            nn.SiLU(),
+            nn.Dropout( self.dropout ),
+            nn.LayerNorm( self.encoder_output_size ),
+            nn.Linear( in_features = self.encoder_output_size, out_features = self.num_class ),
+        )
+
     def forward(self, batch) -> Dict[str, torch.Tensor]:
         # TODO: implement model forward
-        raise NotImplementedError
+        x = self.embed( batch )
+        x, hidden = self.rnn( x )
+        out = self.classifier( x )
+        return out
+        #raise NotImplementedError

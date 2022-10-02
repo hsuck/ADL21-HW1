@@ -52,8 +52,34 @@ class SeqClsDataset(Dataset):
 
 
 class SeqTaggingClsDataset(SeqClsDataset):
-    ignore_idx = -100
+    def __init__(
+        self,
+        data: List[Dict],
+        vocab: Vocab,
+        label_mapping: Dict[str, int],
+        max_len: int,
+    ):
+        super().__init__( data, vocab, label_mapping, max_len )
+        self._idx2tag = { idx: tag for tag, idx in self.label_mapping.items() }
+        ignore_idx = -100
 
     def collate_fn(self, samples):
         # TODO: implement collate_fn
-        raise NotImplementedError
+        sample_keys = samples[0].keys()
+        output = {}
+        for key in sample_keys:
+            if key == 'tokens':
+                tokens = [ sample['tokens'] for sample in samples ]
+                output['len'] = [ len( token ) for token in tokens ]
+                output[key] = self.vocab.encode_batch( tokens )
+            else:
+                output[key] = [ sample[key] for sample in samples ]
+
+        return output
+        #raise NotImplementedError
+
+    def tags2idx( self, tags: List[ int ] ):
+        return [ self.label_mapping[tag] for tag in tags ]
+
+    def idxs2tag( self, idxs: List[ int ] ):
+        return [ self._idx2tag[ int( idx ) ] for idx in idxs ]
