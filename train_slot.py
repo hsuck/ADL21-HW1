@@ -14,6 +14,9 @@ from dataset import SeqClsDataset, SeqTaggingClsDataset
 from utils import Vocab, pad_to_len
 from model import SeqClassifier, SeqTagger
 
+import numpy as np
+import random
+
 TRAIN = "train"
 DEV = "eval"
 SPLITS = [TRAIN, DEV]
@@ -74,7 +77,7 @@ def main(args):
 
     scheduler = optim.lr_scheduler.StepLR(
         optimizer,
-        step_size = 50,
+        step_size = 20,
         gamma = 0.1
     )
 
@@ -138,9 +141,7 @@ def main(args):
                     dev_acc += ( predictions[j].cpu() == labels[j].cpu() ).sum().item() == to_len
                 dev_losses += loss.item()
 
-            print( '\nEpoch[{:03d}/{:03d}] Train Acc: {:3.6f} Loss: {:3.6f} | Dev Acc: {:3.6f} loss: {:3.6f}'.format(
-                epoch,
-                args.num_epoch,
+            print( '\nTrain Acc: {:3.6f} Loss: {:3.6f} | Dev Acc: {:3.6f} loss: {:3.6f}'.format(
                 train_acc / len( datasets[TRAIN] ),
                 train_losses / len( train_dataloader ),
                 dev_acc / len( datasets[DEV] ),
@@ -149,10 +150,10 @@ def main(args):
             if dev_acc > best_acc:
                 best_acc = dev_acc
                 torch.save( model.state_dict(), args.ckpt_dir / "best_model.pt" )
-                print( 'saving model with acc {:.3f}'.format( best_acc / len( datasets[DEV] ) ) )
+                print('saving model...')
 
         scheduler.step()
-        print( 'Overall best model: acc {:.3f}'.format( best_acc / len( datasets[DEV] ) ) )
+        print( 'Best acc: {:3.6f}'.format( best_acc / len( datasets[DEV] ) ) )
     # TODO: Inference on test set
 
 
@@ -187,10 +188,10 @@ def parse_args() -> Namespace:
     parser.add_argument("--bidirectional", type=bool, default=True)
 
     # optimizer
-    parser.add_argument("--lr", type=float, default=2e-4)
+    parser.add_argument("--lr", type=float, default=1e-3)
 
     # data loader
-    parser.add_argument("--batch_size", type=int, default=512)
+    parser.add_argument("--batch_size", type=int, default=128)
 
     # training
     parser.add_argument(
@@ -205,4 +206,10 @@ def parse_args() -> Namespace:
 if __name__ == "__main__":
     args = parse_args()
     args.ckpt_dir.mkdir(parents=True, exist_ok=True)
+    seed = 1234
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.manual_seed( seed  )
+    np.random.seed( seed  )
+    random.seed( seed  )
     main(args)

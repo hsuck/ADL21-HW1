@@ -24,7 +24,7 @@ class SeqClassifier(torch.nn.Module):
         self.num_class = num_class
         # TODO: model architecture
 
-        self.rnn = nn.LSTM(
+        self.rnn = nn.GRU(
             input_size = embeddings.shape[1],
             hidden_size = self.hidden_size,
             num_layers = self.num_layers,
@@ -33,11 +33,17 @@ class SeqClassifier(torch.nn.Module):
             batch_first = True, # batch * seq * feature
         )
 
+        for name, param in self.rnn.named_parameters():
+            if name.startswith('weight'):
+                nn.init.orthogonal_( param )
+            else:
+                nn.init.zeros_( param )
+
         self.classifier = nn.Sequential(
             nn.SiLU(),
             nn.Dropout( self.dropout ),
             nn.Linear( in_features = self.encoder_output_size, out_features = self.hidden_size // 2 ),
-            nn.BatchNorm1d( hidden_size // 2 ),
+            nn.BatchNorm1d( self.hidden_size // 2 ),
             nn.SiLU(),
             nn.Dropout( self.dropout ),
             nn.Linear( in_features = self.hidden_size // 2 , out_features = self.num_class ),
@@ -54,7 +60,7 @@ class SeqClassifier(torch.nn.Module):
         x = self.embed( batch )
         x, hidden = self.rnn( x, None )
         if self.bidirectional:
-            out = self.classifier( torch.mean( x, dim = 1 ) )
+            out = self.classifier( torch.sum( x, dim = 1 ) )
         else:
             out = self.classifier( x[:, -1, :] )
         return out
@@ -88,10 +94,14 @@ class SeqTagger(SeqClassifier):
         #self.num_class = num_class
 
         self.classifier = nn.Sequential(
-            nn.SiLU(),
+            nn.ReLU(),
             nn.Dropout( self.dropout ),
             nn.LayerNorm( self.encoder_output_size ),
-            nn.Linear( in_features = self.encoder_output_size, out_features = self.num_class ),
+            nn.Linear( in_features = self.encoder_output_size, out_features = self.hidden_size // 2 ),
+            nn.ReLU(),
+            nn.Dropout( self.dropout ),
+            nn.LayerNorm( self.hidden_size // 2 ),
+            nn.Linear( in_features = self.hidden_size // 2 , out_features = self.num_class ),
         )
 
     def forward(self, batch) -> Dict[str, torch.Tensor]:
