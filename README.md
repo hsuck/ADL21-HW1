@@ -1,4 +1,4 @@
-# Sample Code for Homework 1 ADL NTU
+# Homework 1 ADL NTU
 
 ## Environment
 ```shell
@@ -20,3 +20,55 @@ bash preprocess.sh
 ```shell
 python train_intent.py
 ```
+### Options to modify arguments of training
+#### model
+```shell
+--hidden_size
+--num_layers
+--dropout
+--bidirectional
+```
+#### optimizer
+```shell
+--lr
+```
+#### data loader
+```shell
+--batch_size
+```
+#### cpu or gpu
+```shell
+--device
+```
+#### epoch
+```shell
+--num_epoch
+```
+#### My settings
+```shell
+python train_intent.py --dropout 0.2 --num_layers 3 --hidden_size 512 --num_epoch 50
+```
+others by default
+### Options to modify arguments of path
+#### directory to the dataset
+```shell
+--data_dir
+```
+#### directory to the dataset
+```shell
+--cache_dir
+```
+#### directory to save the model file
+```shell
+--ckpt_dir
+```
+## Slot tagging
+```shell
+python train_slot.py
+```
+slot tagging has the same options as intent detection, so you can follow above description to specify your training model's arguments
+#### My settings
+```shell
+python train_slot.py --dropout 0.2 --num_layers 4 --hidden_size 512 --num_epoch 50
+```
+others by default
