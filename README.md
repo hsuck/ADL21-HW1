@@ -20,40 +20,40 @@ bash preprocess.sh
 ```shell
 python train_intent.py
 ```
-## Options to modify arguments of training
-### model
+### Options to modify arguments of training
+#### model
 ```shell
 --hidden_size
 --num_layers
 --dropout
 --bidirectional
 ```
-### optimizer
+#### optimizer
 ```shell
 --lr
 ```
-### data loader
+#### data loader
 ```shell
 --batch_size
 ```
-### cpu or gpu
+#### cpu or gpu
 ```shell
 --device
 ```
-### epoch
+#### epoch
 ```shell
 --num_epoch
 ```
-## Options to modify arguments of path
-### directory to the dataset
+### Options to modify arguments of path
+#### directory to the dataset
 ```shell
 --data_dir
 ```
-### directory to the dataset
+#### directory to the dataset
 ```shell
 --cache_dir
 ```
-### directory to save the model file
+#### directory to save the model file
 ```shell
 --ckpt_dir
 ```
