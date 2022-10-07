@@ -16,7 +16,36 @@ pip instsall -r requirements.in
 bash preprocess.sh
 ```
 
-## Intent detection
+## Intent detection training
 ```shell
 python train_intent.py
+```
+## you can use following options to modify arguments of training
+### for model
+```shell
+--hidden_size
+--num_layers
+--dropout
+--bidirectional
+```
+### for optimizer
+```shell
+--lr
+```
+### for data loader
+```shell
+--batch_size
+```
+### use cpu or gpu
+```shell
+--device
+```
+### epoch
+```shell
+--num_epoch
+```
+## you can use following options to modify arguments of path
+### directory to the dataset
+```shell
+--data_dir
 ```
