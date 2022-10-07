@@ -44,6 +44,11 @@ python train_intent.py
 ```shell
 --num_epoch
 ```
+#### My settings
+```shell
+python train_intent.py --dropout 0.2 --num_layers 3 --hidden_size 512
+```
+others by default
 ### Options to modify arguments of path
 #### directory to the dataset
 ```shell
@@ -61,4 +66,9 @@ python train_intent.py
 ```shell
 python train_slot.py
 ```
-slot tagging has the same options as intent detection, so you can follow above description to specify your training model's arguments 
+slot tagging has the same options as intent detection, so you can follow above description to specify your training model's arguments
+#### My settings
+```shell
+python train_intent.py --dropout 0.2 --num_layers 4 --hidden_size 512
+```
+others by default
