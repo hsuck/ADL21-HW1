@@ -46,7 +46,7 @@ python train_intent.py
 ```
 #### My settings
 ```shell
-python train_intent.py --dropout 0.2 --num_layers 3 --hidden_size 512
+python train_intent.py --dropout 0.2 --num_layers 3 --hidden_size 512 --num_epoch 50
 ```
 others by default
 ### Options to modify arguments of path
@@ -69,6 +69,6 @@ python train_slot.py
 slot tagging has the same options as intent detection, so you can follow above description to specify your training model's arguments
 #### My settings
 ```shell
-python train_slot.py --dropout 0.2 --num_layers 4 --hidden_size 512
+python train_slot.py --dropout 0.2 --num_layers 4 --hidden_size 512 --num_epoch 50
 ```
 others by default
