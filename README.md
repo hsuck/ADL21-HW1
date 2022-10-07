@@ -16,27 +16,27 @@ pip instsall -r requirements.in
 bash preprocess.sh
 ```
 
-## Intent detection training
+## Intent detection
 ```shell
 python train_intent.py
 ```
-## you can use following options to modify arguments of training
-### for model
+## Options to modify arguments of training
+### model
 ```shell
 --hidden_size
 --num_layers
 --dropout
 --bidirectional
 ```
-### for optimizer
+### optimizer
 ```shell
 --lr
 ```
-### for data loader
+### data loader
 ```shell
 --batch_size
 ```
-### use cpu or gpu
+### cpu or gpu
 ```shell
 --device
 ```
@@ -44,8 +44,21 @@ python train_intent.py
 ```shell
 --num_epoch
 ```
-## you can use following options to modify arguments of path
+## Options to modify arguments of path
 ### directory to the dataset
 ```shell
 --data_dir
 ```
+### directory to the dataset
+```shell
+--cache_dir
+```
+### directory to save the model file
+```shell
+--ckpt_dir
+```
+## Slot tagging
+```shell
+python train_slot.py
+```
+slot tagging has the same options as intent detection, so you can follow above description to specify your training model's arguments 
