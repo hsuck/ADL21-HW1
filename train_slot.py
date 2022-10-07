@@ -55,7 +55,6 @@ def main(args):
     device = args.device
     num_class = datasets[TRAIN].num_classes
     model = SeqTagger(
-        #model = args.model,
         hidden_size = args.hidden_size,
         embeddings = embeddings,
         num_layers = args.num_layers,

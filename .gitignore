@@ -4,3 +4,4 @@ ckpt
 data
 glove.840B.300d.*
 *.csv
+*.json

@@ -53,9 +53,8 @@ def main(args):
     embeddings = torch.load(args.cache_dir / "embeddings.pt")
     # TODO: init model and move model to target device(cpu / gpu)
     device = args.device
-    num_class = len( intent2idx )
+    num_class = datasets[TRAIN].num_classes
     model = SeqClassifier(
-        #model = args.model,
         hidden_size = args.hidden_size,
         embeddings = embeddings,
         num_layers = args.num_layers,
