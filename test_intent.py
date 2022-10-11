@@ -32,7 +32,6 @@ def main(args):
 
     num_class = dataset.num_classes
     model = SeqClassifier(
-        #model = args.model,
         hidden_size = args.hidden_size,
         embeddings = embeddings,
         num_layers = args.num_layers,

@@ -11,6 +11,8 @@ from dataset import SeqClsDataset, SeqTaggingClsDataset
 from model import SeqClassifier, SeqTagger
 from utils import Vocab
 
+from seqeval.metrics import classification_report
+from seqeval.scheme import IOB2
 
 def main(args):
     with open(args.cache_dir / "vocab.pkl", "rb") as f:
@@ -19,10 +21,10 @@ def main(args):
     tag2idx_path = args.cache_dir / "tag2idx.json"
     tag2idx: Dict[str, int] = json.loads(tag2idx_path.read_text())
 
-    data = json.loads(args.test_file.read_text())
+    data = json.loads(args.dev_file.read_text())
     dataset = SeqTaggingClsDataset(data, vocab, tag2idx, args.max_len)
     # TODO: crecate DataLoader for test dataset
-    test_dataloader = DataLoader(
+    dev_dataloader = DataLoader(
         dataset = dataset,
         batch_size = args.batch_size,
         collate_fn = dataset.collate_fn,
@@ -49,10 +51,14 @@ def main(args):
     model.load_state_dict( ckpt )
 
     # TODO: predict dataset
-    result = []
-    print('Start to test...')
-    for i, datas in enumerate( test_dataloader  ):
+    preds, groundtruth = [], []
+    print('Start to evaluate...')
+    print('')
+    for i, datas in enumerate( dev_dataloader  ):
         inputs = datas['tokens']
+        labels = datas['tags']
+        groundtruth += labels
+
         inputs = torch.LongTensor( inputs ).to( device )
 
         # forward
@@ -60,25 +66,29 @@ def main(args):
 
         # calculate accuracy
         _, predictions = torch.max( outputs, dim = 2  )
-        predictions = [ ' '.join( dataset.idxs2tag( prediction )[: datas['len'][i] ] ) for i, prediction in enumerate( predictions ) ]
-        ids = datas['id']
-        result += list( zip( ids, predictions ) )
+        predictions = [ dataset.idxs2tag( prediction )[: datas['len'][i] ] for i, prediction in enumerate( predictions ) ]
+        preds += predictions
 
-    # TODO: write prediction to file (args.pred_file)
-    print( f'Writing predicttions to {args.pred_file}...' )
-    with open( args.pred_file, 'w' ) as f:
-        f.write('id,tags\n')
-        for _id, prediction in result:
-            f.write(f'{_id},{prediction}\n')
+    joint_acc, token_acc, total_len_tokens = 0, 0, 0
+    for pred, label in list( zip( preds, groundtruth ) ):
+        total_len_tokens += len( pred )
+        corrects = sum([ int( p == l ) for p, l in zip( pred, label ) ])
+        joint_acc += int( len( pred ) == corrects )
+        token_acc += corrects
 
+    print( "Joint Acc: {:3.6f}, ({}/{})".format( joint_acc / len( preds ), joint_acc, len( preds ) ) )
+    print( "Token Acc: {:3.6f}, ({}/{})".format( token_acc / total_len_tokens, token_acc, total_len_tokens ) )
+    print('')
+    r = classification_report( y_true = groundtruth, y_pred = preds, scheme = IOB2, mode = 'strict' )
+    print( r )
 
 def parse_args() -> Namespace:
     parser = ArgumentParser()
     parser.add_argument(
-        "--test_file",
+        "--dev_file",
         type=Path,
-        help="Path to the test file.",
-        default = "./data/slot/test.json"
+        help="Path to the eval file.",
+        default = "./data/slot/eval.json"
     )
     parser.add_argument(
         "--cache_dir",
