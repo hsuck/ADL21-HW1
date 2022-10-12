@@ -76,7 +76,7 @@ def main(args):
 
     scheduler = optim.lr_scheduler.StepLR(
         optimizer,
-        step_size = 20,
+        step_size = 50,
         gamma = 0.1
     )
 
@@ -98,6 +98,8 @@ def main(args):
             inputs = torch.LongTensor( inputs ).to( device )
             labels = torch.LongTensor( labels ).to( device )
 
+            optimizer.zero_grad()
+
             # forward
             outputs = model( inputs )
 
@@ -105,8 +107,11 @@ def main(args):
             loss = criterion( outputs.view( -1, num_class ), labels.view( -1 ) )
 
             # backward
-            optimizer.zero_grad()
             loss.backward()
+
+            clipping_value = 1.6
+            torch.nn.utils.clip_grad_value_( model.parameters(), clipping_value )
+
             optimizer.step()
 
             # calculate accuracy
@@ -151,7 +156,7 @@ def main(args):
                 torch.save( model.state_dict(), args.ckpt_dir / "best_model.pt" )
                 print('saving model...')
 
-        scheduler.step()
+        #scheduler.step()
         print( 'Best acc: {:3.6f}'.format( best_acc / len( datasets[DEV] ) ) )
     # TODO: Inference on test set
 
@@ -205,7 +210,7 @@ def parse_args() -> Namespace:
 if __name__ == "__main__":
     args = parse_args()
     args.ckpt_dir.mkdir(parents=True, exist_ok=True)
-    seed = 9487
+    seed = 1234
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
     torch.manual_seed( seed  )

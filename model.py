@@ -94,11 +94,12 @@ class SeqTagger(SeqClassifier):
         #self.num_class = num_class
 
         self.classifier = nn.Sequential(
-            nn.ReLU(),
+            nn.PReLU(),
             nn.Dropout( self.dropout ),
             nn.LayerNorm( self.encoder_output_size ),
+            #nn.Linear( in_features = self.encoder_output_size, out_features = self.num_class ),
             nn.Linear( in_features = self.encoder_output_size, out_features = self.hidden_size // 2 ),
-            nn.ReLU(),
+            nn.PReLU(),
             nn.Dropout( self.dropout ),
             nn.LayerNorm( self.hidden_size // 2 ),
             nn.Linear( in_features = self.hidden_size // 2 , out_features = self.num_class ),

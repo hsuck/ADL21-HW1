@@ -71,7 +71,7 @@ class SeqTaggingClsDataset(SeqClsDataset):
             if key == 'tokens':
                 tokens = [ sample['tokens'] for sample in samples ]
                 output['len'] = [ len( token ) for token in tokens ]
-                output[key] = self.vocab.encode_batch( tokens )
+                output[key] = self.vocab.encode_batch( tokens, self.max_len )
             else:
                 output[key] = [ sample[key] for sample in samples ]
 
