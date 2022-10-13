@@ -55,6 +55,7 @@ def main(args):
     device = args.device
     num_class = datasets[TRAIN].num_classes
     model = SeqClassifier(
+        model = args.model,
         hidden_size = args.hidden_size,
         embeddings = embeddings,
         num_layers = args.num_layers,
@@ -175,6 +176,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--max_len", type=int, default=128)
 
     # model
+    parser.add_argument( "--model", type = str, default = 'GRU' )
     parser.add_argument("--hidden_size", type=int, default=1024)
     parser.add_argument("--num_layers", type=int, default=2)
     parser.add_argument("--dropout", type=float, default=0.1)

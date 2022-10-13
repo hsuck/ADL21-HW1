@@ -55,6 +55,7 @@ def main(args):
     device = args.device
     num_class = datasets[TRAIN].num_classes
     model = SeqTagger(
+        model = args.model,
         hidden_size = args.hidden_size,
         embeddings = embeddings,
         num_layers = args.num_layers,
@@ -76,7 +77,7 @@ def main(args):
 
     scheduler = optim.lr_scheduler.StepLR(
         optimizer,
-        step_size = 50,
+        step_size = 20,
         gamma = 0.1
     )
 
@@ -109,8 +110,8 @@ def main(args):
             # backward
             loss.backward()
 
-            clipping_value = 1.6
-            torch.nn.utils.clip_grad_value_( model.parameters(), clipping_value )
+            #clipping_value = 2
+            #torch.nn.utils.clip_grad_value_( model.parameters(), clipping_value )
 
             optimizer.step()
 
@@ -156,7 +157,7 @@ def main(args):
                 torch.save( model.state_dict(), args.ckpt_dir / "best_model.pt" )
                 print('saving model...')
 
-        #scheduler.step()
+        scheduler.step()
         print( 'Best acc: {:3.6f}'.format( best_acc / len( datasets[DEV] ) ) )
     # TODO: Inference on test set
 
@@ -186,6 +187,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--max_len", type=int, default=128)
 
     # model
+    parser.add_argument( "--model", type = str, default = 'GRU' )
     parser.add_argument("--hidden_size", type=int, default=1024)
     parser.add_argument("--num_layers", type=int, default=2)
     parser.add_argument("--dropout", type=float, default=0.1)
