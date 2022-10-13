@@ -4,10 +4,12 @@ import torch
 from torch.nn import Embedding
 import torch.nn as nn
 
-
+RNN = { 'GRU': nn.GRU,
+        'LSTM': nn.LSTM }
 class SeqClassifier(torch.nn.Module):
     def __init__(
         self,
+        model: str,
         embeddings: torch.tensor,
         hidden_size: int,
         num_layers: int,
@@ -16,6 +18,7 @@ class SeqClassifier(torch.nn.Module):
         num_class: int,
     ) -> None:
         super(SeqClassifier, self).__init__()
+        self.model = model
         self.embed = Embedding.from_pretrained(embeddings, freeze=False)
         self.hidden_size = hidden_size
         self.num_layers = num_layers
@@ -24,7 +27,8 @@ class SeqClassifier(torch.nn.Module):
         self.num_class = num_class
         # TODO: model architecture
 
-        self.rnn = nn.GRU(
+        print( "Use " + model )
+        self.rnn = RNN[self.model](
             input_size = embeddings.shape[1],
             hidden_size = self.hidden_size,
             num_layers = self.num_layers,
@@ -70,6 +74,7 @@ class SeqClassifier(torch.nn.Module):
 class SeqTagger(SeqClassifier):
     def __init__(
         self,
+        model: str,
         embeddings: torch.tensor,
         hidden_size: int,
         num_layers: int,
@@ -78,6 +83,7 @@ class SeqTagger(SeqClassifier):
         num_class: int,
     ) -> None:
         super().__init__(
+            model = model,
             hidden_size = hidden_size,
             embeddings = embeddings,
             num_layers = num_layers,
@@ -86,20 +92,12 @@ class SeqTagger(SeqClassifier):
             num_class = num_class
         )
 
-        #self.embed = Embedding.from_pretrained(embeddings, freeze=False)
-        #self.hidden_size = hidden_size
-        #self.num_layers = num_layers
-        #self.dropout = dropout
-        #self.bidirectional = bidirectional
-        #self.num_class = num_class
-
         self.classifier = nn.Sequential(
-            nn.PReLU(),
+            nn.SiLU(),
             nn.Dropout( self.dropout ),
             nn.LayerNorm( self.encoder_output_size ),
-            #nn.Linear( in_features = self.encoder_output_size, out_features = self.num_class ),
             nn.Linear( in_features = self.encoder_output_size, out_features = self.hidden_size // 2 ),
-            nn.PReLU(),
+            nn.SiLU(),
             nn.Dropout( self.dropout ),
             nn.LayerNorm( self.hidden_size // 2 ),
             nn.Linear( in_features = self.hidden_size // 2 , out_features = self.num_class ),
