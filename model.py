@@ -18,18 +18,46 @@ class SeqClassifier(torch.nn.Module):
         num_class: int,
     ) -> None:
         super(SeqClassifier, self).__init__()
-        self.model = model
+        self.model = model.split('_')
+        #self.model = model
         self.embed = Embedding.from_pretrained(embeddings, freeze=False)
         self.hidden_size = hidden_size
         self.num_layers = num_layers
         self.dropout = dropout
         self.bidirectional = bidirectional
         self.num_class = num_class
+        self.CNN = False
+        self.num_cnn = 1
         # TODO: model architecture
 
-        print( "Use " + model )
-        self.rnn = RNN[self.model](
-            input_size = embeddings.shape[1],
+        # model architecture
+        print( self.model )
+        if self.model[0] == "CNN":
+            self.model.pop(0)
+            self.CNN = True
+
+        self.cnn = []
+        for i in range( self.num_cnn ):
+            conv = nn.Sequential(
+                nn.Conv1d(
+                    in_channels = self.embed.embedding_dim,
+                    out_channels = self.embed.embedding_dim,
+                    kernel_size = 5,
+                    stride = 1,
+                    padding = 2, 
+                    padding_mode = 'zeros',
+                ),
+                nn.ReLU(),
+                nn.Dropout( self.dropout ),
+                nn.BatchNorm1d( self.embed.embedding_dim )
+            )
+            self.cnn.append( conv )
+        self.cnn = nn.ModuleList( self.cnn )
+
+        print( "Using " + model + ' model' )
+        self.rnn = RNN[self.model[0]](
+        #self.rnn = RNN[self.model](
+            input_size = self.embed.embedding_dim,
             hidden_size = self.hidden_size,
             num_layers = self.num_layers,
             dropout = self.dropout,
@@ -44,11 +72,11 @@ class SeqClassifier(torch.nn.Module):
                 nn.init.zeros_( param )
 
         self.classifier = nn.Sequential(
-            nn.SiLU(),
+            nn.ReLU(),
             nn.Dropout( self.dropout ),
             nn.Linear( in_features = self.encoder_output_size, out_features = self.hidden_size // 2 ),
             nn.BatchNorm1d( self.hidden_size // 2 ),
-            nn.SiLU(),
+            nn.ReLU(),
             nn.Dropout( self.dropout ),
             nn.Linear( in_features = self.hidden_size // 2 , out_features = self.num_class ),
         )
@@ -62,6 +90,13 @@ class SeqClassifier(torch.nn.Module):
     def forward(self, batch) -> Dict[str, torch.Tensor]:
         # TODO: implement model forward
         x = self.embed( batch )
+
+        if self.CNN:
+            x = x.permute( 0, 2, 1 )
+            for conv in self.cnn:
+                x = conv( x )
+            x = x.permute( 0, 2, 1 )
+            
         x, hidden = self.rnn( x, None )
         if self.bidirectional:
             out = self.classifier( torch.sum( x, dim = 1 ) )
@@ -93,11 +128,12 @@ class SeqTagger(SeqClassifier):
         )
 
         self.classifier = nn.Sequential(
-            nn.SiLU(),
+            nn.ReLU(),
             nn.Dropout( self.dropout ),
             nn.LayerNorm( self.encoder_output_size ),
             nn.Linear( in_features = self.encoder_output_size, out_features = self.hidden_size // 2 ),
-            nn.SiLU(),
+            #nn.Linear( in_features = self.encoder_output_size, out_features = self.num_class ),
+            nn.ReLU(),
             nn.Dropout( self.dropout ),
             nn.LayerNorm( self.hidden_size // 2 ),
             nn.Linear( in_features = self.hidden_size // 2 , out_features = self.num_class ),
@@ -105,8 +141,18 @@ class SeqTagger(SeqClassifier):
 
     def forward(self, batch) -> Dict[str, torch.Tensor]:
         # TODO: implement model forward
+        #print( batch.shape )
         x = self.embed( batch )
+        #print( x.shape )
+        if self.CNN:
+            x = x.permute( 0, 2, 1 )
+            for conv in self.cnn:
+                x = conv( x )
+            x = x.permute( 0, 2, 1 )
+
         x, hidden = self.rnn( x )
+        #print( x.shape )
         out = self.classifier( x )
+        #print( out.shape )
         return out
         #raise NotImplementedError

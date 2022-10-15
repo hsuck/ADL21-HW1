@@ -77,7 +77,7 @@ def main(args):
 
     scheduler = optim.lr_scheduler.StepLR(
         optimizer,
-        step_size = 20,
+        step_size = args.step_size,
         gamma = 0.1
     )
 
@@ -154,13 +154,13 @@ def main(args):
 
             if dev_acc > best_acc:
                 best_acc = dev_acc
-                torch.save( model.state_dict(), args.ckpt_dir / "best_model.pt" )
+                torch.save( model.state_dict(), args.ckpt_dir / ( args.model + "_best_model.pt" ) )
                 print('saving model...')
 
         scheduler.step()
         print( 'Best acc: {:3.6f}'.format( best_acc / len( datasets[DEV] ) ) )
     # TODO: Inference on test set
-
+    torch.save( model.state_dict(), args.ckpt_dir / ( args.model + "_last_epoch_model.pt" ) )
 
 def parse_args() -> Namespace:
     parser = ArgumentParser()
@@ -195,6 +195,7 @@ def parse_args() -> Namespace:
 
     # optimizer
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--step_size", type=float, default=20)
 
     # data loader
     parser.add_argument("--batch_size", type=int, default=128)

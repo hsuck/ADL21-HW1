@@ -143,7 +143,7 @@ def main(args):
 
             if dev_acc > best_acc:
                 best_acc = dev_acc
-                torch.save( model.state_dict(), args.ckpt_dir / "best_model.pt" )
+                torch.save( model.state_dict(), args.ckpt_dir / ( args.model + "_best_model.pt" ) )
                 print('saving model...')
 
         scheduler.step()
