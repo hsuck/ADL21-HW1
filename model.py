@@ -16,6 +16,7 @@ class SeqClassifier(torch.nn.Module):
         dropout: float,
         bidirectional: bool,
         num_class: int,
+        num_cnn: int,
     ) -> None:
         super(SeqClassifier, self).__init__()
         self.model = model.split('_')
@@ -27,7 +28,7 @@ class SeqClassifier(torch.nn.Module):
         self.bidirectional = bidirectional
         self.num_class = num_class
         self.CNN = False
-        self.num_cnn = 1
+        self.num_cnn = num_cnn
         # TODO: model architecture
 
         # model architecture
@@ -116,6 +117,7 @@ class SeqTagger(SeqClassifier):
         dropout: float,
         bidirectional: bool,
         num_class: int,
+        num_cnn: int,
     ) -> None:
         super().__init__(
             model = model,
@@ -124,7 +126,8 @@ class SeqTagger(SeqClassifier):
             num_layers = num_layers,
             dropout = dropout,
             bidirectional = bidirectional,
-            num_class = num_class
+            num_class = num_class,
+            num_cnn = num_cnn
         )
 
         self.classifier = nn.Sequential(

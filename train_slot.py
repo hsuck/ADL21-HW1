@@ -61,7 +61,8 @@ def main(args):
         num_layers = args.num_layers,
         dropout = args.dropout,
         bidirectional = args.bidirectional,
-        num_class = num_class
+        num_class = num_class,
+        num_cnn = args.num_cnn
     )
 
     model = model.to( device )
@@ -192,6 +193,7 @@ def parse_args() -> Namespace:
     parser.add_argument("--num_layers", type=int, default=2)
     parser.add_argument("--dropout", type=float, default=0.1)
     parser.add_argument("--bidirectional", type=bool, default=True)
+    parser.add_argument( "--num_cnn", type = int, default = 1 )
 
     # optimizer
     parser.add_argument("--lr", type=float, default=1e-3)
