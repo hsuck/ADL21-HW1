@@ -56,6 +56,7 @@ class SeqClassifier(torch.nn.Module):
         self.cnn = nn.ModuleList( self.cnn )
 
         print( "Using " + model + ' model' )
+        print( 'bidirectional: ', self.bidirectional )
         self.rnn = RNN[self.model[0]](
         #self.rnn = RNN[self.model](
             input_size = self.embed.embedding_dim,
