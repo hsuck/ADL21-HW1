@@ -241,11 +241,11 @@ Note that $support$ refers to the number of actual occurrences of the class in t
 
 The joint accuracy counts a correct predicted sentence only if all the tokens in the predicted sentence are correctly predicted.
 
-$Joint\ Accuracy=\cfrac{\#\ of\ correct\ predicted\ sentences}{\#\ of\ sentences}$
+$Joint\ Accuracy=\cfrac{num\ of\ correct\ predicted\ sentences}{num\ of\ sentences}$
 
 The token accuracy counts correct predicted tokens.
 
-$Token\ Accuracy=\cfrac{\#\ of\ correct\ predicted\ tokens}{\#\ of\ tokens}$
+$Token\ Accuracy=\cfrac{num\ of\ correct\ predicted\ tokens}{num\ of\ tokens}$
 
 $Precision=\cfrac{TP}{TP+FP}$
 
@@ -265,9 +265,9 @@ $Macro\ F1\ score=\cfrac{1}{n}\displaystyle\sum_{i=1}^nF1\ score_i,\ where\ i\ m
 
 ***Weighted average***
 First, calculate each class's $Precision、Recall\ and\ F1\ score$ and then averages them with their proportion in total data.
-$Weighted\ Precision=\displaystyle\sum_{i=1}^n\cfrac{\#\ of\ class_i(support)}{\#\ of\ total\ data}Precision_i,\ where\ i\ means\ class$
-$Weighted\ Recall=\displaystyle\sum_{i=1}^n\cfrac{\#\ of\ class_i(support)}{\#\ of\ total\ data}Recall_i,\ where\ i\ means\ class$
-$Weighted\ F1\ score=\displaystyle\sum_{i=1}^n\cfrac{\#\ of\ class_i(support)}{\#\ of\ total\ data}F1\ score_i,\ where\ i\ means\ class$
+$Weighted\ Precision=\displaystyle\sum_{i=1}^n\cfrac{num\ of\ class_i(support)}{num\ of\ total\ data}Precision_i,\ where\ i\ means\ class$
+$Weighted\ Recall=\displaystyle\sum_{i=1}^n\cfrac{num\ of\ class_i(support)}{num\ of\ total\ data}Recall_i,\ where\ i\ means\ class$
+$Weighted\ F1\ score=\displaystyle\sum_{i=1}^n\cfrac{num\ of\ class_i(support)}{num\ of\ total\ data}F1\ score_i,\ where\ i\ means\ class$
 
 ## Q5: Compare with different configurations (1% + Bonus 1%)
 
