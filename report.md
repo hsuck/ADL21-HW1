@@ -104,8 +104,6 @@ step_size = 10
 gamma = 0.1
 ```
 
-<div style="page-break-after: always; break-after: page;"></div>
-
 ## Q3: Describe your slot tagging model. (2%)
 
 ### a. your model
@@ -221,8 +219,6 @@ step_size = 30
 gamma = 0.1
 ```
 
-<div style="page-break-after: always; break-after: page;"></div>
-
 ## Q4: Sequence Tagging Evaluation (2%)
 
 ```bash
@@ -273,8 +269,6 @@ $Weighted\ Precision=\displaystyle\sum_{i=1}^n\cfrac{\#\ of\ class_i(support)}{\
 $Weighted\ Recall=\displaystyle\sum_{i=1}^n\cfrac{\#\ of\ class_i(support)}{\#\ of\ total\ data}Recall_i,\ where\ i\ means\ class$
 $Weighted\ F1\ score=\displaystyle\sum_{i=1}^n\cfrac{\#\ of\ class_i(support)}{\#\ of\ total\ data}F1\ score_i,\ where\ i\ means\ class$
 
-<div style="page-break-after: always; break-after: page;"></div>
-
 ## Q5: Compare with different configurations (1% + Bonus 1%)
 
 ### Intent classification
@@ -316,8 +310,6 @@ with one-layer CNN
 | Average    | 0.917418 | 0.90055      | 0.89700       |
 
 ---
-
-<div style="page-break-after: always; break-after: page;"></div>
 
 `hidden size = 256`
 
@@ -362,8 +354,6 @@ CNN
 
 ---
 
-<div style="page-break-after: always; break-after: page;"></div>
-
 `hidden size = 512`
 
 without CNN
@@ -396,8 +386,6 @@ without CNN
 | GRU     | 0.718000 | 0.68954      | 0.70150       |
 | BiGRU   | 0.802000 | 0.79249      | 0.80385       |
 | Average | 0.760000 | 0.74128      | 0.75428       |
-
-<div style="page-break-after: always; break-after: page;"></div>
 
 with two-layers CNN
 
