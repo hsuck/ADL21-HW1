@@ -78,7 +78,7 @@ def main(args):
 
     scheduler = optim.lr_scheduler.StepLR(
         optimizer,
-        step_size = 10,
+        step_size = args.step_size,
         gamma = 0.1
     )
 
@@ -186,6 +186,7 @@ def parse_args() -> Namespace:
 
     # optimizer
     parser.add_argument("--lr", type=float, default=1e-3)
+    parser.add_argument("--step_size", type=int, default=10)
 
     # data loader
     parser.add_argument("--batch_size", type=int, default=128)
